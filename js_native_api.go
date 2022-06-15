@@ -45,3 +45,13 @@ func CreateArray(env Env) (Value, Status) {
 	))
 	return result, status
 }
+
+func CreateArrayWithLength(env Env, length int) (Value, Status) {
+	var result Value
+	status := Status(C.napi_create_array_with_length(
+		C.napi_env(env),
+		C.size_t(length),
+		(*C.napi_value)(unsafe.Pointer(&result)),
+	))
+	return result, status
+}
