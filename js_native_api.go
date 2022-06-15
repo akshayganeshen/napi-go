@@ -18,3 +18,12 @@ func GetUndefined(env Env) (Value, Status) {
 	))
 	return result, status
 }
+
+func GetNull(env Env) (Value, Status) {
+	var result Value
+	status := Status(C.napi_get_null(
+		C.napi_env(env),
+		(*C.napi_value)(unsafe.Pointer(&result)),
+	))
+	return result, status
+}
