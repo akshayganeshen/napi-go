@@ -55,3 +55,17 @@ func CreateArrayWithLength(env Env, length int) (Value, Status) {
 	))
 	return result, status
 }
+
+func CreateStringUtf8(env Env, str string) (Value, Status) {
+	cstr := C.CString(str)
+	defer C.free(unsafe.Pointer(cstr))
+
+	var result Value
+	status := Status(C.napi_create_string_utf8(
+		C.napi_env(env),
+		cstr,
+		C.size_t(len([]byte(str))), // must pass number of bytes
+		(*C.napi_value)(unsafe.Pointer(&result)),
+	))
+	return result, status
+}
