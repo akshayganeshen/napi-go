@@ -80,3 +80,13 @@ func CreateError(env Env, code, msg Value) (Value, Status) {
 	))
 	return result, status
 }
+
+func Typeof(env Env, value Value) (ValueType, Status) {
+	var result ValueType
+	status := Status(C.napi_typeof(
+		C.napi_env(env),
+		C.napi_value(value),
+		(*C.napi_valuetype)(unsafe.Pointer(&result)),
+	))
+	return result, status
+}
