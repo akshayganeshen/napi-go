@@ -27,3 +27,12 @@ func GetNull(env Env) (Value, Status) {
 	))
 	return result, status
 }
+
+func CreateObject(env Env) (Value, Status) {
+	var result Value
+	status := Status(C.napi_create_object(
+		C.napi_env(env),
+		(*C.napi_value)(unsafe.Pointer(&result)),
+	))
+	return result, status
+}
