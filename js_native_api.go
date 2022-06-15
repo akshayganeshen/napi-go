@@ -108,3 +108,14 @@ func SetElement(env Env, object Value, index int, value Value) Status {
 		C.napi_value(value),
 	))
 }
+
+func StrictEquals(env Env, lhs, rhs Value) (bool, Status) {
+	var result bool
+	status := Status(C.napi_strict_equals(
+		C.napi_env(env),
+		C.napi_value(lhs),
+		C.napi_value(rhs),
+		(*C.bool)(&result),
+	))
+	return result, status
+}
