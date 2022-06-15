@@ -36,3 +36,12 @@ func CreateObject(env Env) (Value, Status) {
 	))
 	return result, status
 }
+
+func CreateArray(env Env) (Value, Status) {
+	var result Value
+	status := Status(C.napi_create_array(
+		C.napi_env(env),
+		(*C.napi_value)(unsafe.Pointer(&result)),
+	))
+	return result, status
+}
