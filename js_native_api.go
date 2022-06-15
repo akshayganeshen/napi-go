@@ -90,3 +90,12 @@ func Typeof(env Env, value Value) (ValueType, Status) {
 	))
 	return result, status
 }
+
+func SetProperty(env Env, object, key, value Value) Status {
+	return Status(C.napi_set_property(
+		C.napi_env(env),
+		C.napi_value(object),
+		C.napi_value(key),
+		C.napi_value(value),
+	))
+}
