@@ -119,3 +119,44 @@ func StrictEquals(env Env, lhs, rhs Value) (bool, Status) {
 	))
 	return result, status
 }
+
+type GetCbInfoResult struct {
+	Args []Value
+	This Value
+}
+
+func GetCbInfo(env Env, info CallbackInfo) (GetCbInfoResult, Status) {
+	// call napi_get_cb_info twice
+	// first is to get total number of arguments
+	// second is to populate the actual arguments
+	argc := C.size_t(0)
+	status := Status(C.napi_get_cb_info(
+		C.napi_env(env),
+		C.napi_callback_info(info),
+		&argc,
+		nil,
+		nil,
+		nil,
+	))
+
+	if status != StatusOK {
+		return GetCbInfoResult{}, status
+	}
+
+	argv := make([]Value, int(argc))
+	var thisArg Value
+
+	status = Status(C.napi_get_cb_info(
+		C.napi_env(env),
+		C.napi_callback_info(info),
+		&argc,
+		(*C.napi_value)(unsafe.Pointer(&argv[0])), // must pass element pointer
+		(*C.napi_value)(unsafe.Pointer(&thisArg)),
+		nil,
+	))
+
+	return GetCbInfoResult{
+		Args: argv,
+		This: thisArg,
+	}, status
+}
