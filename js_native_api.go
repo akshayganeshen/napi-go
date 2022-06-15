@@ -160,3 +160,10 @@ func GetCbInfo(env Env, info CallbackInfo) (GetCbInfoResult, Status) {
 		This: thisArg,
 	}, status
 }
+
+func Throw(env Env, err Value) Status {
+	return Status(C.napi_throw(
+		C.napi_env(env),
+		C.napi_value(err),
+	))
+}
