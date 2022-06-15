@@ -69,3 +69,14 @@ func CreateStringUtf8(env Env, str string) (Value, Status) {
 	))
 	return result, status
 }
+
+func CreateError(env Env, code, msg Value) (Value, Status) {
+	var result Value
+	status := Status(C.napi_create_error(
+		C.napi_env(env),
+		C.napi_value(code),
+		C.napi_value(msg),
+		(*C.napi_value)(unsafe.Pointer(&result)),
+	))
+	return result, status
+}
