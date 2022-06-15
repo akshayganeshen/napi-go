@@ -23,3 +23,17 @@ func GetNodeVersion(env Env) (NodeVersion, Status) {
 		Release: C.GoString(cresult.release),
 	}, status
 }
+
+func GetModuleFileName(env Env) (string, Status) {
+	var cresult *C.char
+	status := Status(C.node_api_get_module_file_name(
+		C.napi_env(env),
+		(**C.char)(&cresult),
+	))
+
+	if status != StatusOK {
+		return "", status
+	}
+
+	return C.GoString(cresult), status
+}
