@@ -99,3 +99,12 @@ func SetProperty(env Env, object, key, value Value) Status {
 		C.napi_value(value),
 	))
 }
+
+func SetElement(env Env, object Value, index int, value Value) Status {
+	return Status(C.napi_set_element(
+		C.napi_env(env),
+		C.napi_value(object),
+		C.uint32_t(index),
+		C.napi_value(value),
+	))
+}
