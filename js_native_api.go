@@ -167,3 +167,15 @@ func Throw(env Env, err Value) Status {
 		C.napi_value(err),
 	))
 }
+
+func ThrowError(env Env, code, msg string) Status {
+	codeCStr, msgCCstr := C.CString(code), C.CString(msg)
+	defer C.free(unsafe.Pointer(codeCStr))
+	defer C.free(unsafe.Pointer(msgCCstr))
+
+	return Status(C.napi_throw_error(
+		C.napi_env(env),
+		codeCStr,
+		msgCCstr,
+	))
+}
