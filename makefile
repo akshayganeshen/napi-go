@@ -3,6 +3,7 @@ clean: clean-doc
 
 EXAMPLE_DIR = docs/examples
 EXAMPLE_PACKAGES = \
+	describe-args \
 	hello-world
 
 NAPI_LIB_SUFFIX = .node
