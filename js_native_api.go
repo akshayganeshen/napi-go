@@ -70,6 +70,15 @@ func CreateStringUtf8(env Env, str string) (Value, Status) {
 	return result, status
 }
 
+func CreateFunction(env Env, name string, cb Callback) (Value, Status) {
+	provider, status := getInstanceData(env)
+	if status != StatusOK || provider == nil {
+		return nil, status
+	}
+
+	return provider.GetCallbackData().CreateCallback(env, name, cb)
+}
+
 func CreateError(env Env, code, msg Value) (Value, Status) {
 	var result Value
 	status := Status(C.napi_create_error(
