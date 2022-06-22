@@ -14,10 +14,6 @@ extern napi_value InitializeModule(
   napi_value  exports
 );
 
-// EnterCGo is a no-op function implemented in Go to be called from C.
-// EnterCGo ensures all Go module init functions are executed.
-extern void EnterCGo();
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
