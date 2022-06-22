@@ -153,13 +153,18 @@ func GetCbInfo(env Env, info CallbackInfo) (GetCbInfoResult, Status) {
 	}
 
 	argv := make([]Value, int(argc))
+	var cArgv unsafe.Pointer
+	if argc > 0 {
+		cArgv = unsafe.Pointer(&argv[0]) // must pass element pointer
+	}
+
 	var thisArg Value
 
 	status = Status(C.napi_get_cb_info(
 		C.napi_env(env),
 		C.napi_callback_info(info),
 		&argc,
-		(*C.napi_value)(unsafe.Pointer(&argv[0])), // must pass element pointer
+		(*C.napi_value)(cArgv),
 		(*C.napi_value)(unsafe.Pointer(&thisArg)),
 		nil,
 	))
