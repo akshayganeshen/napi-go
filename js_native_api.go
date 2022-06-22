@@ -100,6 +100,48 @@ func Typeof(env Env, value Value) (ValueType, Status) {
 	return result, status
 }
 
+func GetValueStringUtf8(env Env, value Value) (string, Status) {
+	// call napi_get_value_string_utf8 twice
+	// first is to get number of bytes
+	// second is to populate the actual string buffer
+	bufsize := C.size_t(0)
+	var strsize C.size_t
+
+	status := Status(C.napi_get_value_string_utf8(
+		C.napi_env(env),
+		C.napi_value(value),
+		nil,
+		bufsize,
+		&strsize,
+	))
+
+	if status != StatusOK {
+		return "", status
+	}
+
+	// ensure there is room for the null terminator as well
+	strsize++
+	cstr := (*C.char)(C.malloc(C.sizeof_char * strsize))
+	defer C.free(unsafe.Pointer(cstr))
+
+	status = Status(C.napi_get_value_string_utf8(
+		C.napi_env(env),
+		C.napi_value(value),
+		cstr,
+		strsize,
+		&strsize,
+	))
+
+	if status != StatusOK {
+		return "", status
+	}
+
+	return C.GoStringN(
+		(*C.char)(cstr),
+		(C.int)(strsize),
+	), status
+}
+
 func SetProperty(env Env, object, key, value Value) Status {
 	return Status(C.napi_set_property(
 		C.napi_env(env),
