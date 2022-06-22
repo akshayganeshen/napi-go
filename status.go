@@ -5,7 +5,15 @@ package napi
 */
 import "C"
 
+import (
+	"fmt"
+)
+
 type Status int
+
+type StatusError Status
+
+var _ error = StatusError(0)
 
 const (
 	StatusOK                            Status = C.napi_ok
@@ -81,4 +89,8 @@ func (s Status) String() string {
 	}
 
 	return "napi_go_status_unknown"
+}
+
+func (err StatusError) Error() string {
+	return fmt.Sprintf("napi_status error: %s", Status(err))
 }
