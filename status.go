@@ -31,3 +31,54 @@ const (
 	StatusDetachableArraybufferExpected Status = C.napi_detachable_arraybuffer_expected
 	StatusWouldDeadlock                 Status = C.napi_would_deadlock
 )
+
+func (s Status) String() string {
+	switch s {
+	case StatusOK:
+		return "napi_ok"
+	case StatusInvalidArg:
+		return "napi_invalid_arg"
+	case StatusObjectExpected:
+		return "napi_object_expected"
+	case StatusStringExpected:
+		return "napi_string_expected"
+	case StatusNameExpected:
+		return "napi_name_expected"
+	case StatusFunctionExpected:
+		return "napi_function_expected"
+	case StatusNumberExpected:
+		return "napi_number_expected"
+	case StatusBooleanExpected:
+		return "napi_boolean_expected"
+	case StatusArrayExpected:
+		return "napi_array_expected"
+	case StatusGenericFailure:
+		return "napi_generic_failure"
+	case StatusPendingException:
+		return "napi_pending_exception"
+	case StatusCancelled:
+		return "napi_cancelled"
+	case StatusEscapeCalledTwice:
+		return "napi_escape_called_twice"
+	case StatusHandleScopeMismatch:
+		return "napi_handle_scope_mismatch"
+	case StatusCallbackScopeMismatch:
+		return "napi_callback_scope_mismatch"
+	case StatusQueueFull:
+		return "napi_queue_full"
+	case StatusClosing:
+		return "napi_closing"
+	case StatusBigintExpected:
+		return "napi_bigint_expected"
+	case StatusDateExpected:
+		return "napi_date_expected"
+	case StatusArraybufferExpected:
+		return "napi_arraybuffer_expected"
+	case StatusDetachableArraybufferExpected:
+		return "napi_detachable_arraybuffer_expected"
+	case StatusWouldDeadlock:
+		return "napi_would_deadlock"
+	}
+
+	return "napi_go_status_unknown"
+}
