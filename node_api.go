@@ -24,6 +24,19 @@ func CreateAsyncWork(
 	)
 }
 
+func DeleteAsyncWork(env Env, work AsyncWork) Status {
+	provider, status := getInstanceData(env)
+	if status != StatusOK || provider == nil {
+		return status
+	}
+
+	defer provider.GetAsyncWorkData().DeleteAsyncWork(work.ID)
+	return Status(C.napi_delete_async_work(
+		C.napi_env(env),
+		C.napi_async_work(work.Handle),
+	))
+}
+
 func GetNodeVersion(env Env) (NodeVersion, Status) {
 	var cresult *C.napi_node_version
 	status := Status(C.napi_get_node_version(
