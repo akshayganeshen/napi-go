@@ -235,3 +235,13 @@ func ThrowError(env Env, code, msg string) Status {
 		msgCCstr,
 	))
 }
+
+func SetInstanceData(env Env, data any) Status {
+	provider, status := getInstanceData(env)
+	if status != StatusOK || provider == nil {
+		return status
+	}
+
+	provider.SetUserData(data)
+	return status
+}
