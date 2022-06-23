@@ -4,6 +4,7 @@ clean: clean-doc
 EXAMPLE_DIR = docs/examples
 EXAMPLE_PACKAGES = \
 	async-promise \
+	callback \
 	describe-args \
 	hello-world
 
