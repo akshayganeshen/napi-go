@@ -236,6 +236,16 @@ func ThrowError(env Env, code, msg string) Status {
 	))
 }
 
+func CreatePromise(env Env) (Promise, Status) {
+	var result Promise
+	status := Status(C.napi_create_promise(
+		C.napi_env(env),
+		(*C.napi_deferred)(unsafe.Pointer(&result.Deferred)),
+		(*C.napi_value)(unsafe.Pointer(&result.Value)),
+	))
+	return result, status
+}
+
 func SetInstanceData(env Env, data any) Status {
 	provider, status := getInstanceData(env)
 	if status != StatusOK || provider == nil {
