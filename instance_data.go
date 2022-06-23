@@ -112,13 +112,19 @@ func InitializeInstanceData(env Env) Status {
 }
 
 //export DeleteInstanceData
-func DeleteInstanceData(env C.napi_env, finalizeData, finalizeHint unsafe.Pointer) {
+func DeleteInstanceData(
+	env C.napi_env,
+	finalizeData, finalizeHint unsafe.Pointer,
+) {
 	instanceDataHandle := cgo.Handle(finalizeData)
 	instanceDataHandle.Delete()
 }
 
 //export DeleteCallbackData
-func DeleteCallbackData(cEnv C.napi_env, finalizeData, finalizeHint unsafe.Pointer) {
+func DeleteCallbackData(
+	cEnv C.napi_env,
+	finalizeData, finalizeHint unsafe.Pointer,
+) {
 	env := Env(cEnv)
 	defer func() {
 		err := recover()
@@ -143,7 +149,10 @@ func DeleteCallbackData(cEnv C.napi_env, finalizeData, finalizeHint unsafe.Point
 }
 
 //export ExecuteCallback
-func ExecuteCallback(cEnv C.napi_env, cInfo C.napi_callback_info) C.napi_value {
+func ExecuteCallback(
+	cEnv C.napi_env,
+	cInfo C.napi_callback_info,
+) C.napi_value {
 	env := Env(cEnv)
 	defer func() {
 		err := recover()
