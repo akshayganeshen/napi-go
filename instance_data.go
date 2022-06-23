@@ -20,6 +20,17 @@ extern napi_value ExecuteCallback(
 	napi_env env,
 	napi_callback_info info
 );
+
+extern void ExecuteAsyncExecuteCallback(
+	napi_env env,
+	void *data
+);
+
+extern void ExecuteAsyncCompleteCallback(
+	napi_env env,
+	napi_status status,
+	void *data
+);
 */
 import "C"
 
@@ -31,8 +42,9 @@ import (
 )
 
 type NapiGoInstanceData struct {
-	UserData     any
-	CallbackData NapiGoInstanceCallbackData
+	UserData      any
+	CallbackData  NapiGoInstanceCallbackData
+	AsyncWorkData NapiGoInstanceAsyncWorkData
 }
 
 type NapiGoInstanceCallbackData struct {
@@ -50,11 +62,28 @@ type NapiGoCallbackMapEntry struct {
 	ID       NapiGoCallbackID
 }
 
+type NapiGoAsyncWorkID int
+
+type NapiGoInstanceAsyncWorkData struct {
+	AsyncWorkMap NapiGoInstanceAsyncWorkMap
+	NextID       NapiGoAsyncWorkID
+	Lock         sync.RWMutex
+}
+
+type NapiGoInstanceAsyncWorkMap map[NapiGoAsyncWorkID]*NapiGoAsyncWorkMapEntry
+
+type NapiGoAsyncWorkMapEntry struct {
+	Execute  AsyncExecuteCallback
+	Complete AsyncCompleteCallback
+	ID       NapiGoAsyncWorkID
+}
+
 type InstanceDataProvider interface {
 	GetUserData() any
 	SetUserData(userData any)
 
 	GetCallbackData() CallbackDataProvider
+	GetAsyncWorkData() AsyncWorkDataProvider
 }
 
 type CallbackDataProvider interface {
@@ -63,8 +92,20 @@ type CallbackDataProvider interface {
 	DeleteCallback(id NapiGoCallbackID)
 }
 
+type AsyncWorkDataProvider interface {
+	CreateAsyncWork(
+		env Env,
+		asyncResource, asyncResourceName Value,
+		execute AsyncExecuteCallback,
+		complete AsyncCompleteCallback,
+	) (AsyncWork, Status)
+	GetAsyncWork(id NapiGoAsyncWorkID) *NapiGoAsyncWorkMapEntry
+	DeleteAsyncWork(id NapiGoAsyncWorkID)
+}
+
 var _ InstanceDataProvider = &NapiGoInstanceData{}
 var _ CallbackDataProvider = &NapiGoInstanceCallbackData{}
+var _ AsyncWorkDataProvider = &NapiGoInstanceAsyncWorkData{}
 
 func InitializeInstanceData(env Env) Status {
 	return setInstanceData(env, &NapiGoInstanceData{})
@@ -145,6 +186,68 @@ func ExecuteCallback(cEnv C.napi_env, cInfo C.napi_callback_info) C.napi_value {
 	return C.napi_value(result)
 }
 
+//export ExecuteAsyncExecuteCallback
+func ExecuteAsyncExecuteCallback(cEnv C.napi_env, cData unsafe.Pointer) {
+	env := Env(cEnv)
+	defer func() {
+		err := recover()
+		if err != nil {
+			fmt.Printf(
+				"napi.ExecuteAsyncExecuteCallback: Recovered from panic: %s\n",
+				err,
+			)
+
+			msg := "unknown error"
+			if err, ok := err.(error); ok {
+				msg = err.Error()
+			}
+			ThrowError(env, "", msg)
+		}
+	}()
+
+	instanceData, status := getInstanceData(env)
+	if status != StatusOK {
+		panic(StatusError(status))
+	}
+
+	id := *(*NapiGoAsyncWorkID)(cData)
+	asyncWorkData := instanceData.GetAsyncWorkData().GetAsyncWork(id)
+	asyncWorkData.Execute(env)
+}
+
+//export ExecuteAsyncCompleteCallback
+func ExecuteAsyncCompleteCallback(
+	cEnv C.napi_env,
+	cStatus C.napi_status,
+	cData unsafe.Pointer,
+) {
+	env := Env(cEnv)
+	defer func() {
+		err := recover()
+		if err != nil {
+			fmt.Printf(
+				"napi.ExecuteAsyncExecuteCallback: Recovered from panic: %s\n",
+				err,
+			)
+
+			msg := "unknown error"
+			if err, ok := err.(error); ok {
+				msg = err.Error()
+			}
+			ThrowError(env, "", msg)
+		}
+	}()
+
+	instanceData, status := getInstanceData(env)
+	if status != StatusOK {
+		panic(StatusError(status))
+	}
+
+	id := *(*NapiGoAsyncWorkID)(cData)
+	asyncWorkData := instanceData.GetAsyncWorkData().GetAsyncWork(id)
+	asyncWorkData.Complete(env, Status(cStatus))
+}
+
 func getInstanceDataHandle(env Env) (cgo.Handle, Status) {
 	var result unsafe.Pointer
 	status := Status(C.napi_get_instance_data(
@@ -199,6 +302,10 @@ func (d *NapiGoInstanceData) SetUserData(userData any) {
 
 func (d *NapiGoInstanceData) GetCallbackData() CallbackDataProvider {
 	return &d.CallbackData
+}
+
+func (d *NapiGoInstanceData) GetAsyncWorkData() AsyncWorkDataProvider {
+	return &d.AsyncWorkData
 }
 
 func (d *NapiGoInstanceCallbackData) CreateCallback(
@@ -271,6 +378,73 @@ func (d *NapiGoInstanceCallbackData) insert(
 				ID:       id,
 			}
 			d.CallbackMap[id] = result
+			return result
+		}
+	}
+}
+
+func (d *NapiGoInstanceAsyncWorkData) CreateAsyncWork(
+	env Env,
+	asyncResource, asyncResourceName Value,
+	execute AsyncExecuteCallback,
+	complete AsyncCompleteCallback,
+) (AsyncWork, Status) {
+	d.Lock.Lock()
+	defer d.Lock.Unlock()
+
+	asyncWorkState := d.insert(execute, complete)
+
+	result := AsyncWork{
+		ID: asyncWorkState.ID,
+	}
+	status := Status(C.napi_create_async_work(
+		C.napi_env(env),
+		C.napi_value(asyncResource),
+		C.napi_value(asyncResourceName),
+		C.napi_async_execute_callback(C.ExecuteAsyncExecuteCallback),
+		C.napi_async_complete_callback(C.ExecuteAsyncCompleteCallback),
+		unsafe.Pointer(&asyncWorkState.ID),
+		(*C.napi_async_work)(unsafe.Pointer(&result.Handle)),
+	))
+
+	return result, status
+}
+
+func (d *NapiGoInstanceAsyncWorkData) GetAsyncWork(
+	id NapiGoAsyncWorkID,
+) *NapiGoAsyncWorkMapEntry {
+	d.Lock.RLock()
+	defer d.Lock.RUnlock()
+	return d.AsyncWorkMap[id]
+}
+
+func (d *NapiGoInstanceAsyncWorkData) DeleteAsyncWork(id NapiGoAsyncWorkID) {
+	d.Lock.Lock()
+	defer d.Lock.Unlock()
+	delete(d.AsyncWorkMap, id)
+}
+
+func (d *NapiGoInstanceAsyncWorkData) insert(
+	execute AsyncExecuteCallback,
+	complete AsyncCompleteCallback,
+) *NapiGoAsyncWorkMapEntry {
+	// callers are expected to lock
+
+	if d.AsyncWorkMap == nil {
+		d.AsyncWorkMap = NapiGoInstanceAsyncWorkMap{}
+	}
+
+	for {
+		id := d.NextID
+		d.NextID++
+
+		if d.AsyncWorkMap[id] == nil {
+			result := &NapiGoAsyncWorkMapEntry{
+				Execute:  execute,
+				Complete: complete,
+				ID:       id,
+			}
+			d.AsyncWorkMap[id] = result
 			return result
 		}
 	}
