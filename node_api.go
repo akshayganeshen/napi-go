@@ -5,6 +5,25 @@ package napi
 */
 import "C"
 
+func CreateAsyncWork(
+	env Env,
+	asyncResource, asyncResourceName Value,
+	execute AsyncExecuteCallback,
+	complete AsyncCompleteCallback,
+) (AsyncWork, Status) {
+	provider, status := getInstanceData(env)
+	if status != StatusOK || provider == nil {
+		return AsyncWork{}, status
+	}
+
+	return provider.GetAsyncWorkData().CreateAsyncWork(
+		env,
+		asyncResource, asyncResourceName,
+		execute,
+		complete,
+	)
+}
+
 func GetNodeVersion(env Env) (NodeVersion, Status) {
 	var cresult *C.napi_node_version
 	status := Status(C.napi_get_node_version(
