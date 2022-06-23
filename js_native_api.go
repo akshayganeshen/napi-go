@@ -245,3 +245,12 @@ func SetInstanceData(env Env, data any) Status {
 	provider.SetUserData(data)
 	return status
 }
+
+func GetInstanceData(env Env) (any, Status) {
+	provider, status := getInstanceData(env)
+	if status != StatusOK || provider == nil {
+		return nil, status
+	}
+
+	return provider.GetUserData(), status
+}
