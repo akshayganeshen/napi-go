@@ -254,6 +254,14 @@ func ResolveDeferred(env Env, deferred Deferred, resolution Value) Status {
 	))
 }
 
+func RejectDeferred(env Env, deferred Deferred, rejection Value) Status {
+	return Status(C.napi_reject_deferred(
+		C.napi_env(env),
+		C.napi_deferred(deferred),
+		C.napi_value(rejection),
+	))
+}
+
 func SetInstanceData(env Env, data any) Status {
 	provider, status := getInstanceData(env)
 	if status != StatusOK || provider == nil {
