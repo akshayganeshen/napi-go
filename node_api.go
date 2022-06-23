@@ -44,6 +44,13 @@ func QueueAsyncWork(env Env, work AsyncWork) Status {
 	))
 }
 
+func CancelAsyncWork(env Env, work AsyncWork) Status {
+	return Status(C.napi_cancel_async_work(
+		C.napi_env(env),
+		C.napi_async_work(work.Handle),
+	))
+}
+
 func GetNodeVersion(env Env) (NodeVersion, Status) {
 	var cresult *C.napi_node_version
 	status := Status(C.napi_get_node_version(
