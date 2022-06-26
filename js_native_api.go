@@ -75,6 +75,16 @@ func CreateArrayWithLength(env Env, length int) (Value, Status) {
 	return result, status
 }
 
+func CreateDouble(env Env, value float64) (Value, Status) {
+	var result Value
+	status := Status(C.napi_create_double(
+		C.napi_env(env),
+		C.double(value),
+		(*C.napi_value)(unsafe.Pointer(&result)),
+	))
+	return result, status
+}
+
 func CreateStringUtf8(env Env, str string) (Value, Status) {
 	cstr := C.CString(str)
 	defer C.free(unsafe.Pointer(cstr))
