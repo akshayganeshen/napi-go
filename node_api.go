@@ -120,3 +120,9 @@ func CallThreadsafeFunction(
 		C.napi_tsfn_blocking,
 	))
 }
+
+func AcquireThreadsafeFunction(fn ThreadsafeFunction) Status {
+	return Status(C.napi_acquire_threadsafe_function(
+		C.napi_threadsafe_function(fn),
+	))
+}
