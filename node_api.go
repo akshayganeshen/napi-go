@@ -126,3 +126,12 @@ func AcquireThreadsafeFunction(fn ThreadsafeFunction) Status {
 		C.napi_threadsafe_function(fn),
 	))
 }
+
+func ReleaseThreadsafeFunction(
+	fn ThreadsafeFunction,
+) Status {
+	return Status(C.napi_release_threadsafe_function(
+		C.napi_threadsafe_function(fn),
+		C.napi_tsfn_release,
+	))
+}
