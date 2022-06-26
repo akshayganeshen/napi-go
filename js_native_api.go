@@ -149,6 +149,16 @@ func GetValueDouble(env Env, value Value) (float64, Status) {
 	return result, status
 }
 
+func GetValueBool(env Env, value Value) (bool, Status) {
+	var result bool
+	status := Status(C.napi_get_value_bool(
+		C.napi_env(env),
+		C.napi_value(value),
+		(*C.bool)(unsafe.Pointer(&result)),
+	))
+	return result, status
+}
+
 func GetValueStringUtf8(env Env, value Value) (string, Status) {
 	// call napi_get_value_string_utf8 twice
 	// first is to get number of bytes
