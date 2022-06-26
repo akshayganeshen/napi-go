@@ -36,6 +36,7 @@ import "C"
 
 import (
 	"fmt"
+	"runtime"
 	"runtime/cgo"
 	"sync"
 	"unsafe"
@@ -107,6 +108,10 @@ var _ InstanceDataProvider = &NapiGoInstanceData{}
 var _ CallbackDataProvider = &NapiGoInstanceCallbackData{}
 var _ AsyncWorkDataProvider = &NapiGoInstanceAsyncWorkData{}
 
+const (
+	maxStackTraceSize = 8192
+)
+
 func InitializeInstanceData(env Env) Status {
 	return setInstanceData(env, &NapiGoInstanceData{})
 }
@@ -130,6 +135,7 @@ func DeleteCallbackData(
 		err := recover()
 		if err != nil {
 			fmt.Printf("napi.DeleteCallbackData: Recovered from panic: %s\n", err)
+			reportStackTrace()
 
 			msg := "unknown error"
 			if err, ok := err.(error); ok {
@@ -158,6 +164,7 @@ func ExecuteCallback(
 		err := recover()
 		if err != nil {
 			fmt.Printf("napi.ExecuteCallback: Recovered from panic: %s\n", err)
+			reportStackTrace()
 
 			msg := "unknown error"
 			if err, ok := err.(error); ok {
@@ -205,6 +212,7 @@ func ExecuteAsyncExecuteCallback(cEnv C.napi_env, cData unsafe.Pointer) {
 				"napi.ExecuteAsyncExecuteCallback: Recovered from panic: %s\n",
 				err,
 			)
+			reportStackTrace()
 
 			msg := "unknown error"
 			if err, ok := err.(error); ok {
@@ -238,6 +246,7 @@ func ExecuteAsyncCompleteCallback(
 				"napi.ExecuteAsyncExecuteCallback: Recovered from panic: %s\n",
 				err,
 			)
+			reportStackTrace()
 
 			msg := "unknown error"
 			if err, ok := err.(error); ok {
@@ -299,6 +308,12 @@ func setInstanceData(env Env, data *NapiGoInstanceData) Status {
 		C.napi_finalize(C.DeleteInstanceData),
 		nil,
 	))
+}
+
+func reportStackTrace() {
+	stackTraceBuf := make([]byte, maxStackTraceSize)
+	stackTraceSz := runtime.Stack(stackTraceBuf, false)
+	fmt.Printf("%s\n", string(stackTraceBuf[:stackTraceSz]))
 }
 
 func (d *NapiGoInstanceData) GetUserData() any {
