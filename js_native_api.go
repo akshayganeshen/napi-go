@@ -139,6 +139,16 @@ func Typeof(env Env, value Value) (ValueType, Status) {
 	return result, status
 }
 
+func GetValueDouble(env Env, value Value) (float64, Status) {
+	var result float64
+	status := Status(C.napi_get_value_double(
+		C.napi_env(env),
+		C.napi_value(value),
+		(*C.double)(unsafe.Pointer(&result)),
+	))
+	return result, status
+}
+
 func GetValueStringUtf8(env Env, value Value) (string, Status) {
 	// call napi_get_value_string_utf8 twice
 	// first is to get number of bytes
