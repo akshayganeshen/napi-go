@@ -110,3 +110,13 @@ func CreateThreadsafeFunction(
 	))
 	return result, status
 }
+
+func CallThreadsafeFunction(
+	fn ThreadsafeFunction,
+) Status {
+	return Status(C.napi_call_threadsafe_function(
+		C.napi_threadsafe_function(fn),
+		nil,
+		C.napi_tsfn_blocking,
+	))
+}
