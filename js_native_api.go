@@ -99,6 +99,16 @@ func CreateStringUtf8(env Env, str string) (Value, Status) {
 	return result, status
 }
 
+func CreateSymbol(env Env, description Value) (Value, Status) {
+	var result Value
+	status := Status(C.napi_create_symbol(
+		C.napi_env(env),
+		C.napi_value(description),
+		(*C.napi_value)(unsafe.Pointer(&result)),
+	))
+	return result, status
+}
+
 func CreateFunction(env Env, name string, cb Callback) (Value, Status) {
 	provider, status := getInstanceData(env)
 	if status != StatusOK || provider == nil {
