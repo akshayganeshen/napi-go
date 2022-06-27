@@ -50,6 +50,33 @@ const example = require("./example.node");
 example.myHandler();
 ```
 
+### JS Helpers
+
+In addition to the Node-API exposed via package `napi`, the `napi-go/js`
+package provides functions similar to the `syscall/js` standard library.
+
+```go
+package main
+
+import (
+  "github.com/akshayganeshen/napi-go/entry"
+  "github.com/akshayganeshen/napi-go/js"
+)
+
+func init() {
+  entry.Export("myCallback", js.AsCallback(MyCallback))
+}
+
+func MyCallback(env js.Env, this js.Value, args []js.Value) any {
+  return map[string]any{
+    "message": "hello world",
+    "args":    args,
+  }
+}
+
+func main() {}
+```
+
 ## Examples
 
 Check out the example addons in [`docs/examples`](docs/examples).
