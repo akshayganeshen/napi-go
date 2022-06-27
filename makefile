@@ -6,7 +6,8 @@ EXAMPLE_PACKAGES = \
 	async-promise \
 	callback \
 	describe-args \
-	hello-world
+	hello-world \
+	js
 
 NAPI_LIB_SUFFIX = .node
 
