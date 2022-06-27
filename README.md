@@ -49,3 +49,7 @@ const example = require("./example.node");
 
 example.myHandler();
 ```
+
+## Examples
+
+Check out the example addons in [`docs/examples`](docs/examples).
